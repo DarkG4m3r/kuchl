@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kuchl</title>
+<meta name="description" content="Rezepte entdecken, speichern, planen und nachkochen.">
+<meta name="theme-color" content="#2F6B4F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kuchl">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: one phone-width column, scrolling view, fixed tab bar at the bottom; cook mode is a full-screen dark overlay */
+:root{
+  --bg:#FFFFFF; --surface:#F1F4F2; --fg:#1C2420; --muted:#5F6B65; --line:#E3E8E5;
+  --accent:#2F6B4F; --on-accent:#FFFFFF; --accent-soft:#E6F0EA; --accent-ink:#1F4A36;
+  --warm-soft:#FCEBE4; --warm-ink:#8A2E10;
+  --tile1:#DDE8E1; --tile2:#F3E3D3; --tile3:#E4E6F2; --tile-ink:#2E4238;
+  --tile4:#F6E7B8; --tile5:#F4DCE4; --tile6:#D7EBEF; --tile7:#E8E0F3; --tile8:#E2EBCF;
+  --cook-bg:#141A17; --cook-card:#1F2925; --cook-line:#34403A; --cook-fg:#F2F5F3; --cook-muted:#A9B5AF; --cook-accent:#8FD3AE;
+  --font:Manrope, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --r:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1D2522; --fg:#EEF2EF; --muted:#A3B0A9; --line:#2A3430;
+  --accent:#8FD3AE; --on-accent:#0F231A; --accent-soft:#1E3328; --accent-ink:#B8E6CC;
+  --warm-soft:#3A2219; --warm-ink:#F3B7A0;
+  --tile1:#24342C; --tile2:#3A2E22; --tile3:#2A2D40; --tile-ink:#D5E2DA;
+  --tile4:#3A3420; --tile5:#3C2630; --tile6:#1E3238; --tile7:#2E2840; --tile8:#2C3520; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1D2522; --fg:#EEF2EF; --muted:#A3B0A9; --line:#2A3430;
+  --accent:#8FD3AE; --on-accent:#0F231A; --accent-soft:#1E3328; --accent-ink:#B8E6CC;
+  --warm-soft:#3A2219; --warm-ink:#F3B7A0;
+  --tile1:#24342C; --tile2:#3A2E22; --tile3:#2A2D40; --tile-ink:#D5E2DA;
+  --tile4:#3A3420; --tile5:#3C2630; --tile6:#1E3238; --tile7:#2E2840; --tile8:#2C3520; color-scheme:dark}
+html,body{height:100%}
+html{color-scheme:light;padding-top:env(safe-area-inset-top,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2.5px solid var(--accent);outline-offset:2px}
+#app{max-width:520px;margin:0 auto;min-height:100%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px calc(96px + env(safe-area-inset-bottom,0px))}
+.view{display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font-size:30px;line-height:1.15;font-weight:800;letter-spacing:-.5px;text-wrap:balance}
+h2{margin:0;font-size:18px;font-weight:800}
+.eyebrow{font-size:14px;color:var(--muted);font-weight:500}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:10px}
+.link{border:0;background:none;color:var(--accent);font-weight:700;font-size:14px;min-height:44px;padding:0 4px}
+.searchbar{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r);padding:0 6px 0 14px;height:52px}
+.searchbar input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:15px}
+.searchbar svg{flex-shrink:0}
+.iconbtn{border:0;background:transparent;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:999px;color:var(--fg)}
+.iconbtn.solid{background:var(--accent);color:var(--on-accent)}
+.iconbtn.float{background:var(--bg);box-shadow:0 1px 4px rgb(0 0 0 / .12)}
+.bigtiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.bigtile{border:0;text-align:left;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:18px;min-height:104px;font-size:16px;font-weight:700;line-height:1.25}
+.bigtile.green{background:var(--accent);color:var(--on-accent)}
+.bigtile.warm{background:var(--warm-soft);color:var(--warm-ink)}
+.card{border:0;background:none;text-align:left;display:flex;gap:14px;align-items:center;padding:4px 0;width:100%}
+.thumb{width:76px;height:76px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:var(--tile-ink)}
+.thumb.s{width:52px;height:52px;font-size:21px;border-radius:11px}
+.t1{background:var(--tile1)}.t2{background:var(--tile2)}.t3{background:var(--tile3)}.t4{background:var(--tile4)}.t5{background:var(--tile5)}.t6{background:var(--tile6)}.t7{background:var(--tile7)}.t8{background:var(--tile8)}
+.card-title{font-size:16px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.scroll{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding-inline:4px}
+.chip{border:0;border-radius:999px;padding:0 14px;height:38px;font-size:14px;font-weight:600;background:var(--surface);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip.on{background:var(--fg);color:var(--bg)}
+.chip.ing{background:var(--accent-soft);color:var(--accent-ink)}
+.chip.toggle{background:transparent;border:1.5px solid var(--line)}
+.chip.toggle.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn{border:0;border-radius:var(--r);height:54px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:700;background:var(--accent);color:var(--on-accent)}
+.btn.ghost{background:var(--surface);color:var(--fg)}
+.btn.sm{height:40px;width:auto;padding:0 14px;font-size:14px;border-radius:12px}
+.btn.warm{background:var(--warm-soft);color:var(--warm-ink)}
+.btn:disabled{opacity:.45}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:700;color:var(--muted)}
+.field input,.field textarea,.field select{border:1.5px solid var(--line);background:var(--bg);border-radius:12px;padding:12px;font-size:15px;width:100%}
+.field textarea{min-height:110px;resize:vertical;line-height:1.45}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.ingrow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.ingrow input{width:22px;height:22px;accent-color:var(--accent);flex-shrink:0}
+.ingrow .qty{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.ingrow.have .nm{color:var(--muted);text-decoration:line-through}
+.stepper{display:flex;align-items:center;background:var(--surface);border-radius:12px}
+.stepper button{border:0;background:transparent;width:44px;height:40px;font-size:19px;font-weight:700}
+.stepper span{font-size:14px;font-weight:700;min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.hero{height:200px;border-radius:20px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px;position:relative;font-size:72px;font-weight:800;color:var(--tile-ink)}
+.hero .letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.55}
+.hero .iconbtn,.hero .savebtn{position:relative;z-index:1}
+.savebtn{border:0;height:44px;border-radius:999px;padding:0 14px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;background:var(--bg);color:var(--fg);box-shadow:0 1px 4px rgb(0 0 0 / .12)}
+.savebtn.on{background:var(--accent);color:var(--on-accent)}
+.panel{background:var(--surface);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:14px}
+.stars{display:flex;gap:2px}
+.stars button{border:0;background:none;width:40px;height:40px;font-size:24px;color:var(--line);padding:0}
+.stars button.on{color:#D99A1E}
+.ai{font-size:11px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;background:var(--accent-soft);color:var(--accent-ink);border-radius:6px;padding:2px 6px}
+.next{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border-radius:var(--r);padding:12px}
+.next .grow{flex:1;min-width:0}
+.colls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.coll{border:0;text-align:left;border-radius:14px;padding:12px;min-height:80px;display:flex;flex-direction:column;justify-content:space-between;font-size:13px;font-weight:700;line-height:1.25;color:var(--tile-ink)}
+.coll.on{outline:2.5px solid var(--accent)}
+.coll.newc{background:transparent;border:1.5px dashed var(--line);color:var(--muted);align-items:center;justify-content:center;gap:4px;text-align:center}
+.empty{text-align:center;padding:28px 12px;color:var(--muted);background:var(--surface);border-radius:var(--r);line-height:1.5}
+.shop{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.shop input{width:22px;height:22px;accent-color:var(--accent)}
+.shop.done span{color:var(--muted);text-decoration:line-through}
+.shop .grow{flex:1;min-width:0}
+.photo{border-radius:18px;background:var(--surface);min-height:150px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;overflow:hidden;position:relative;color:var(--muted);font-size:14px;border:1.5px dashed var(--line);cursor:pointer}
+.photo img{width:100%;max-height:240px;object-fit:cover;display:block}
+.photo input{position:absolute;inset:0;opacity:0;cursor:pointer}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+nav.tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);min-height:50px;justify-content:center;position:relative}
+nav.tabs button.on{color:var(--accent);font-weight:800}
+.badge{position:absolute;top:4px;left:calc(50% + 6px);background:var(--warm-ink);color:var(--bg);font-size:10px;font-weight:800;border-radius:999px;min-width:17px;height:17px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+#toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(12px);background:var(--fg);color:var(--bg);padding:12px 16px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;max-width:calc(100% - 32px)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Cook mode: deliberately always dark */
+#cook{position:fixed;inset:0;z-index:40;background:var(--cook-bg);color:var(--cook-fg);overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+#cook .in{max-width:520px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;gap:22px}
+#cook .iconbtn{color:var(--cook-fg)}
+.prog{display:grid;gap:6px}
+.prog div{height:4px;border-radius:2px;background:var(--cook-line)}
+.prog div.on{background:var(--cook-accent)}
+.steptext{margin:0;font-size:27px;line-height:1.32;font-weight:700;text-wrap:pretty}
+.timer{display:flex;align-items:center;justify-content:space-between;background:var(--cook-card);border-radius:18px;padding:16px 18px}
+.timer .t{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums}
+.timer button{border:0;background:var(--cook-accent);color:#10231A;border-radius:14px;padding:0 18px;height:48px;font-size:15px;font-weight:800}
+.timer.done .t{color:var(--cook-accent)}
+.cookbtns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:auto}
+.cookbtns button{height:58px;border-radius:16px;font-size:16px;font-weight:800;border:1.5px solid var(--cook-line);background:transparent;color:var(--cook-fg)}
+.cookbtns button.pri{background:var(--cook-fg);color:var(--cook-bg);border-color:var(--cook-fg)}
+.cookmuted{color:var(--cook-muted);font-size:14px}
+.ingmini{background:var(--cook-card);border-radius:14px;padding:12px 14px;font-size:14px;line-height:1.6;color:var(--cook-muted)}
+@media (prefers-reduced-motion: reduce){#toast{transition:none}}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+<nav class="tabs" aria-label="Hauptnavigation"><div class="in" id="tabs"></div></nav>
+<div id="cook" hidden></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Icons ---------- */
+const I = {
+  spark:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z"/><path d="M19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></svg>',
+  search:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  scan:'<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="3.5"/></svg>',
+  cal:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  compass:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+  book:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3z"/><path d="M4 17a3 3 0 0 1 3-3h11"/></svg>',
+  cart:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 4h2l2.5 11h11L21 8H6.5"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>',
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+  x:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  plus:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  bookmark:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+  play:'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4l13 8-13 8z"/></svg>',
+  camera:'<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  trash:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
+  gear:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  download:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  upload:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></svg>'
+};
+
+/* ---------- Beispielrezepte ---------- */
+const SAMPLE = [
+  {id:'frittata',title:'Zucchini-Frittata mit Basilikum',time:25,kcal:420,servings:2,tags:['vegetarisch','schnell'],tile:1,
+   ingredients:[{q:5,u:'',n:'Eier'},{q:1,u:'',n:'Zucchini (groß)'},{q:40,u:'g',n:'Parmesan'},{q:null,u:'1 Handvoll',n:'Basilikum'},{q:2,u:'',n:'Frühlingszwiebeln'},{q:1,u:'EL',n:'Olivenöl'},{q:null,u:'nach Geschmack',n:'Salz & Pfeffer'}],
+   steps:[{t:'Zucchini in dünne Scheiben schneiden, Frühlingszwiebeln in Ringe.',s:0},{t:'Eier mit geriebenem Parmesan, Salz und Pfeffer verquirlen.',s:0},{t:'Zucchini in der Pfanne mit Olivenöl bei mittlerer Hitze goldbraun anbraten.',s:270},{t:'Frühlingszwiebeln dazugeben und kurz mitbraten.',s:60},{t:'Eimasse darübergießen, Deckel drauf und bei kleiner Hitze stocken lassen.',s:480},{t:'Mit gezupftem Basilikum bestreuen und in Stücke schneiden.',s:0}]},
+  {id:'knoedel',title:'Spinatknödel mit brauner Butter',time:40,kcal:560,servings:4,tags:['vegetarisch','Südtirol'],tile:2,
+   ingredients:[{q:250,u:'g',n:'Knödelbrot'},{q:300,u:'g',n:'Spinat'},{q:200,u:'ml',n:'Milch'},{q:2,u:'',n:'Eier'},{q:1,u:'',n:'Zwiebel'},{q:2,u:'EL',n:'Mehl'},{q:60,u:'g',n:'Parmesan'},{q:80,u:'g',n:'Butter'}],
+   steps:[{t:'Zwiebel fein hacken und in etwas Butter glasig dünsten.',s:180},{t:'Spinat blanchieren, gut ausdrücken und fein hacken.',s:120},{t:'Knödelbrot mit lauwarmer Milch, Eiern, Zwiebel, Spinat und Mehl vermengen, salzen.',s:0},{t:'Masse ziehen lassen.',s:900},{t:'Mit nassen Händen Knödel formen und in siedendem Salzwasser garen.',s:900},{t:'Butter bräunen, Knödel damit übergießen und mit Parmesan bestreuen.',s:0}]},
+  {id:'ofengemuese',title:'Ofengemüse mit Feta',time:35,kcal:480,servings:2,tags:['vegetarisch','Reste verwerten'],tile:3,
+   ingredients:[{q:2,u:'',n:'Paprika'},{q:1,u:'',n:'Zucchini'},{q:250,u:'g',n:'Kirschtomaten'},{q:1,u:'',n:'Rote Zwiebel'},{q:200,u:'g',n:'Feta'},{q:3,u:'EL',n:'Olivenöl'},{q:1,u:'TL',n:'Oregano'}],
+   steps:[{t:'Ofen auf 200 °C Umluft vorheizen.',s:0},{t:'Gemüse in mundgerechte Stücke schneiden.',s:0},{t:'Mit Öl, Oregano und Salz mischen und aufs Blech geben.',s:0},{t:'Feta in die Mitte legen und backen.',s:1500},{t:'Mit frischem Brot servieren.',s:0}]},
+  {id:'risotto',title:'Kürbisrisotto',time:35,kcal:610,servings:2,tags:['vegetarisch'],tile:2,
+   ingredients:[{q:160,u:'g',n:'Risottoreis'},{q:400,u:'g',n:'Hokkaido-Kürbis'},{q:750,u:'ml',n:'Gemüsebrühe'},{q:1,u:'',n:'Zwiebel'},{q:100,u:'ml',n:'Weißwein'},{q:40,u:'g',n:'Parmesan'},{q:20,u:'g',n:'Butter'}],
+   steps:[{t:'Kürbis würfeln, Zwiebel fein hacken.',s:0},{t:'Zwiebel und Reis in Butter glasig anschwitzen.',s:120},{t:'Mit Weißwein ablöschen und einkochen lassen.',s:60},{t:'Kürbis zugeben und nach und nach Brühe angießen, dabei rühren.',s:1080},{t:'Parmesan und restliche Butter unterrühren, kurz ruhen lassen.',s:120}]},
+  {id:'pasta',title:'Tomaten-Pasta mit Knoblauch',time:20,kcal:540,servings:2,tags:['vegetarisch','schnell'],tile:1,
+   ingredients:[{q:200,u:'g',n:'Spaghetti'},{q:400,u:'g',n:'Tomaten'},{q:2,u:'',n:'Knoblauchzehen'},{q:2,u:'EL',n:'Olivenöl'},{q:null,u:'1 Handvoll',n:'Basilikum'},{q:30,u:'g',n:'Parmesan'}],
+   steps:[{t:'Spaghetti in Salzwasser kochen.',s:540},{t:'Knoblauch in Scheiben in Öl sanft anbraten.',s:60},{t:'Tomaten würfeln, dazugeben und einköcheln lassen.',s:420},{t:'Pasta mit etwas Kochwasser in die Sauce geben, mit Basilikum und Parmesan servieren.',s:0}]},
+  {id:'dal',title:'Rotes Linsen-Dal',time:30,kcal:450,servings:3,tags:['vegan','1 Topf'],tile:3,
+   ingredients:[{q:200,u:'g',n:'Rote Linsen'},{q:400,u:'ml',n:'Kokosmilch'},{q:400,u:'g',n:'Tomaten (Dose)'},{q:1,u:'',n:'Zwiebel'},{q:2,u:'',n:'Knoblauchzehen'},{q:2,u:'TL',n:'Currypulver'},{q:300,u:'ml',n:'Wasser'}],
+   steps:[{t:'Zwiebel und Knoblauch hacken und in Öl andünsten.',s:180},{t:'Currypulver kurz mitrösten.',s:30},{t:'Linsen, Tomaten, Kokosmilch und Wasser zugeben.',s:0},{t:'Köcheln lassen, bis die Linsen zerfallen.',s:1200},{t:'Mit Salz und Zitrone abschmecken.',s:0}]}
+];
+
+const DAYS = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+
+/* ---------- Speicher (auf dem Gerät) ---------- */
+const KEY = 'ki-kochbuch-v1';
+const fresh = () => ({saved:{}, custom:[], plan:[], shop:[], colls:['Schnell unter der Woche','Für Gäste','Omas Rezepte'], collColors:{'Schnell unter der Woche':2,'Für Gäste':3,'Omas Rezepte':1}, pantry:['Zucchini','Eier','Parmesan','Tomaten','Basilikum'], prefs:[]});
+let db = fresh();
+
+/* IndexedDB: robuster als localStorage, wird vom Browser seltener gelöscht */
+let idbP = null;
+function idb(){
+  if (!idbP) idbP = new Promise((res, rej) => {
+    const r = indexedDB.open('ki-kochbuch', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('kv');
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  return idbP;
+}
+async function idbGet(k){ const d = await idb(); return new Promise((res, rej) => { const q = d.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+async function idbSet(k, v){ const d = await idb(); return new Promise((res, rej) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
+
+async function load(){
+  let data = null, fromLS = false;
+  try { data = await idbGet('db'); } catch(e) {}
+  if (!data) { try { const raw = localStorage.getItem(KEY); if (raw) { data = JSON.parse(raw); fromLS = true; } } catch(e) {} }
+  if (data) db = Object.assign(fresh(), data);
+  if (fromLS) persist();
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch(e) {}
+}
+async function persist(){
+  db.updatedAt = Date.now();
+  try { await idbSet('db', JSON.parse(JSON.stringify(db))); }
+  catch(e) { try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(_) {} }
+}
+
+/* Backup: Datei, die man z. B. in pCloud ablegt */
+const fmtDate = t => new Date(t).toLocaleDateString('de-DE', {day:'numeric', month:'long', year:'numeric'});
+async function exportBackup(){
+  const name = 'kuchl-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  const json = JSON.stringify({app:'kuchl', format:1, exportedAt:new Date().toISOString(), data:db});
+  const blob = new Blob([json], {type:'application/json'});
+  let shared = false;
+  try {
+    const file = new File([blob], name, {type:'application/json'});
+    if (navigator.canShare && navigator.canShare({files:[file]})) { await navigator.share({files:[file], title:'Kuchl-Backup'}); shared = true; }
+  } catch(e) { if (e && e.name === 'AbortError') return; }
+  if (!shared) {
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
+  }
+  db.lastBackup = Date.now(); await persist(); render(); toast('Backup gespeichert');
+}
+function mergeData(cur, inc){
+  const out = Object.assign(fresh(), JSON.parse(JSON.stringify(cur)));
+  const ids = new Set(out.custom.map(r => r.id));
+  (inc.custom || []).forEach(r => { if (!ids.has(r.id)) out.custom.push(r); });
+  const stamp = s => Math.max(s.savedAt || 0, s.lastCooked || 0, s.editedAt || 0);
+  Object.entries(inc.saved || {}).forEach(([id, s]) => { if (!out.saved[id] || stamp(s) > stamp(out.saved[id])) out.saved[id] = s; });
+  (inc.colls || []).forEach(c => { if (!out.colls.includes(c)) out.colls.push(c); });
+  out.collColors = Object.assign({}, inc.collColors || {}, out.collColors || {});
+  (inc.plan || []).forEach(p => { if (!out.plan.some(x => x.id === p.id)) out.plan.push(p); });
+  (inc.shop || []).forEach(x => { if (!out.shop.some(y => norm(y.n) === norm(x.n) && !!y.done === !!x.done)) out.shop.push(x); });
+  (inc.pantry || []).forEach(p => { if (!out.pantry.some(q => norm(q) === norm(p))) out.pantry.push(p); });
+  return out;
+}
+
+/* ---------- Zustand ---------- */
+let view = {name:'home'};
+const history = [];
+let ui = {servings:{}, have:{}, query:'', filter:'Alle', coll:null, results:null, photo:null};
+
+const all = () => SAMPLE.concat(db.custom);
+const byId = id => all().find(r => r.id === id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => s.toLowerCase().replace(/\(.*?\)/g,'').trim();
+const inPantry = n => db.pantry.some(p => { const a = norm(p), b = norm(n); return a && (b.includes(a) || a.includes(b)); });
+const matchCount = r => r.ingredients.filter(i => inPantry(i.n)).length;
+
+function fmtQty(i, factor){
+  if (i.q == null) return esc(i.u);
+  let v = i.q * factor;
+  v = v >= 10 ? Math.round(v) : Math.round(v * 2) / 2;
+  const num = String(v).replace('.', ',');
+  return esc(num + (i.u ? ' ' + i.u : ''));
+}
+const mmss = s => String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+const thumb = (r, cls='') => `<div class="thumb ${cls} t${r.tile||1}" aria-hidden="true">${esc(r.title.charAt(0))}</div>`;
+
+let toastT;
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+function go(name, params={}, push=true){ if (push) history.push(view); view = Object.assign({name}, params); render(); window.scrollTo(0,0); }
+function back(){ view = history.pop() || {name:'home'}; render(); window.scrollTo(0,0); }
+function tab(name){ history.length = 0; view = {name}; render(); window.scrollTo(0,0); }
+
+/* ---------- Ansichten ---------- */
+function recipeCard(r, meta){
+  return `<button class="card" data-a="open" data-id="${esc(r.id)}">${thumb(r)}<div class="stack" style="gap:4px;min-width:0"><div class="card-title">${esc(r.title)}</div><div class="small muted">${meta}</div></div></button>`;
+}
+
+function vHome(){
+  const now = new Date(); const h = now.getHours();
+  const meal = h < 11 ? 'Frühstück' : h < 16 ? 'Mittagessen' : 'Abendessen';
+  const q = ui.query.trim().toLowerCase();
+  let list = all();
+  if (q) list = list.filter(r => (r.title + ' ' + r.tags.join(' ') + ' ' + r.ingredients.map(i=>i.n).join(' ')).toLowerCase().includes(q));
+  else list = list.slice().sort((a,b) => matchCount(b) - matchCount(a)).slice(0,4);
+  return `<div class="view">
+    <div class="stack" style="gap:4px"><div class="eyebrow">${DAYS[(now.getDay()+6)%7]}, ${meal}</div><h1>Was kochen wir heute?</h1></div>
+    <form class="searchbar" data-form="search" role="search"><span style="color:var(--accent);display:flex">${I.spark}</span>
+      <label for="q" class="sr" hidden>Frag den Koch</label>
+      <input id="q" type="search" placeholder="Frag den Koch: „Was Schnelles mit Reis?“" value="${esc(ui.query)}" autocomplete="off"></form>
+    <div class="bigtiles">
+      <button class="bigtile green" data-a="go" data-v="scan">${I.scan}<span>Kühlschrank scannen</span></button>
+      <button class="bigtile warm" data-a="tab" data-v="plan">${I.cal}<span>Wochenplan</span></button>
+    </div>
+    <div class="stack">
+      <div class="row between"><h2>${q ? 'Treffer (' + list.length + ')' : 'Für dich vorgeschlagen'}</h2>${q ? '<button class="link" data-a="clearq">Zurücksetzen</button>' : ''}</div>
+      ${list.length ? list.map(r => { const m = matchCount(r); return recipeCard(r, `${r.time} min · ${esc(r.tags[0]||'')}${m ? ' · nutzt ' + m + ' deiner Zutaten' : ''}`); }).join('') : '<div class="empty">Nichts gefunden. Mit der KI-Anbindung erfindet der Koch hier ein passendes Rezept.</div>'}
+    </div>
+  </div>`;
+}
+
+function vScan(){
+  const prefs = ['≤ 30 min','Vegetarisch','Vegan','1 Topf'];
+  const res = ui.results;
+  return `<div class="view">
+    <div class="row"><button class="iconbtn" data-a="back" aria-label="Zurück">${I.back}</button><h2 style="font-size:19px">Was hast du da?</h2></div>
+    <label class="photo" for="photo">${ui.photo ? `<img src="${ui.photo}" alt="Dein Foto">` : `${I.camera}<span>Foto vom Kühlschrank aufnehmen</span><span class="small">Zutaten-Erkennung kommt mit der KI</span>`}<input id="photo" type="file" accept="image/*" capture="environment"></label>
+    <div class="stack">
+      <div class="row between"><h2>Deine Zutaten (${db.pantry.length})</h2></div>
+      <div class="chips">${db.pantry.map((p,i) => `<button class="chip ing" data-a="rmpantry" data-i="${i}" aria-label="${esc(p)} entfernen">${esc(p)} ×</button>`).join('')}</div>
+      <form class="searchbar" data-form="pantry" style="height:46px"><label for="newing" hidden>Zutat hinzufügen</label><input id="newing" placeholder="Zutat hinzufügen, z. B. Reis" autocomplete="off"><button class="iconbtn" aria-label="Hinzufügen" style="color:var(--accent)">${I.plus}</button></form>
+    </div>
+    <div class="stack"><h2>Wünsche</h2>
+      <div class="chips">${prefs.map(p => `<button class="chip toggle ${db.prefs.includes(p)?'on':''}" data-a="pref" data-v="${esc(p)}" aria-pressed="${db.prefs.includes(p)}">${esc(p)}</button>`).join('')}</div>
+    </div>
+    <button class="btn" data-a="suggest">${I.spark} Rezepte vorschlagen</button>
+    ${res ? `<div class="stack"><h2>Passt zu deinen Zutaten</h2>${res.length ? res.map(r => recipeCard(r, `${matchCount(r)} von ${r.ingredients.length} Zutaten da · ${r.time} min`)).join('') : '<div class="empty">Keine passenden Rezepte gefunden. Weniger Wünsche auswählen oder Zutaten ergänzen.</div>'}</div>` : ''}
+  </div>`;
+}
+
+function vRecipe(){
+  const r = byId(view.id); if (!r) return '<div class="empty">Rezept nicht gefunden.</div>';
+  const s = ui.servings[r.id] || r.servings; const f = s / r.servings;
+  const have = ui.have[r.id] || (ui.have[r.id] = r.ingredients.map(i => inPantry(i.n)));
+  const sv = db.saved[r.id];
+  const missing = r.ingredients.filter((_, k) => !have[k]).length;
+  const plan = db.plan.find(p => p.id === r.id);
+  return `<div class="view" style="gap:18px">
+    <div class="hero t${r.tile||1}"><div class="letter" aria-hidden="true">${esc(r.title.charAt(0))}</div>
+      <button class="iconbtn float" data-a="back" aria-label="Zurück">${I.back}</button>
+      <button class="savebtn ${sv?'on':''}" data-a="save" data-id="${esc(r.id)}" aria-pressed="${!!sv}">${I.bookmark}${sv ? 'Gespeichert' : 'Speichern'}</button></div>
+    <div class="stack" style="gap:6px"><h1 style="font-size:25px">${esc(r.title)}</h1>
+      <div class="muted small">${r.time} min${r.kcal ? ' · ' + r.kcal + ' kcal pro Portion' : ''}${sv && sv.cooked ? ' · ' + sv.cooked + '× gekocht' : ''}</div></div>
+    <div class="chips scroll">${['Vegan machen','Ohne Ofen','Würziger','Kalorienärmer'].map(x => `<button class="chip" data-a="ai">${esc(x)} <span class="ai">KI</span></button>`).join('')}</div>
+    ${sv ? `<div class="panel">
+      <div class="row between"><span style="font-weight:700">Deine Bewertung</span><div class="stars" role="group" aria-label="Bewertung">${[1,2,3,4,5].map(n => `<button class="${(sv.rating||0)>=n?'on':''}" data-a="rate" data-id="${esc(r.id)}" data-n="${n}" aria-label="${n} Sterne">★</button>`).join('')}</div></div>
+      <div class="grid2">
+        <div class="field"><label for="coll">Sammlung</label><select id="coll" data-ch="coll" data-id="${esc(r.id)}"><option value="">Keine</option>${db.colls.map(c => `<option ${sv.coll===c?'selected':''}>${esc(c)}</option>`).join('')}<option value="__new">+ Neue Sammlung …</option></select></div>
+        <div class="field"><label for="day">Kochen am</label><select id="day" data-ch="day" data-id="${esc(r.id)}"><option value="">Nicht geplant</option><option value="Bald" ${plan&&plan.day==='Bald'?'selected':''}>Bald</option>${DAYS.map(d => `<option ${plan&&plan.day===d?'selected':''}>${d}</option>`).join('')}</select></div>
+      </div>
+      ${ui.newCollFor === r.id ? collForm('collr', '', 'Anlegen') : ''}
+      <div class="field"><label for="note">Eigene Notiz</label><textarea id="note" data-ch="note" data-id="${esc(r.id)}" placeholder="z. B. weniger Salz, doppelte Menge Käse" style="min-height:70px">${esc(sv.note||'')}</textarea></div>
+    </div>` : ''}
+    <div class="row between"><h2>Zutaten</h2>
+      <div class="stepper"><button data-a="serv" data-id="${esc(r.id)}" data-d="-1" aria-label="Weniger Portionen">−</button><span>${s} Pers.</span><button data-a="serv" data-id="${esc(r.id)}" data-d="1" aria-label="Mehr Portionen">+</button></div></div>
+    <div>${r.ingredients.map((i,k) => `<label class="ingrow ${have[k]?'have':''}" for="h${k}"><input type="checkbox" id="h${k}" data-ch="have" data-id="${esc(r.id)}" data-k="${k}" ${have[k]?'checked':''}><span class="nm">${esc(i.n)}</span><span class="qty">${fmtQty(i,f)}</span></label>`).join('')}</div>
+    <div class="small muted" style="margin-top:-8px">Abhaken, was du schon hast.</div>
+    ${missing ? `<button class="btn warm" data-a="toshop" data-id="${esc(r.id)}">${I.cart} ${missing} fehlende auf die Einkaufsliste</button>` : ''}
+    <div class="stack"><h2>Zubereitung</h2>${r.steps.map((st,k) => `<div class="row" style="align-items:flex-start;gap:12px"><span style="font-weight:800;color:var(--accent);min-width:20px">${k+1}</span><span style="line-height:1.5">${esc(st.t)}${st.s ? ` <span class="muted small">· ${mmss(st.s)} min</span>` : ''}</span></div>`).join('')}</div>
+    <button class="btn" data-a="cook" data-id="${esc(r.id)}">${I.play} Kochmodus starten</button>
+    ${r.custom ? `<button class="btn ghost" data-a="delrecipe" data-id="${esc(r.id)}">${I.trash} ${ui.confirmDel===r.id ? 'Wirklich löschen? Nochmal tippen' : 'Eigenes Rezept löschen'}</button>` : ''}
+  </div>`;
+}
+
+function vSaved(){
+  const saved = Object.keys(db.saved).map(id => ({r:byId(id), s:db.saved[id]})).filter(x => x.r);
+  const filters = ['Alle','Favoriten','Noch nie gekocht','Eigene'];
+  const q = (ui.savedQ||'').toLowerCase();
+  let list = saved.filter(x => {
+    if (ui.filter === 'Favoriten' && (x.s.rating||0) < 4) return false;
+    if (ui.filter === 'Noch nie gekocht' && x.s.cooked) return false;
+    if (ui.filter === 'Eigene' && !x.r.custom) return false;
+    if (ui.coll && x.s.coll !== ui.coll) return false;
+    if (q && !(x.r.title + ' ' + (x.s.note||'') + ' ' + x.r.ingredients.map(i=>i.n).join(' ')).toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b) => (b.s.savedAt||0) - (a.s.savedAt||0));
+  const nxt = db.plan.map(p => ({p, r:byId(p.id)})).filter(x => x.r).sort((a,b) => dayIdx(a.p.day) - dayIdx(b.p.day))[0];
+  return `<div class="view">
+    <div class="row between"><h1>Meine Rezepte</h1><div class="row" style="gap:6px"><button class="iconbtn" data-a="go" data-v="settings" aria-label="Daten und Backup">${I.gear}</button><button class="iconbtn solid" data-a="go" data-v="add" aria-label="Eigenes Rezept anlegen">${I.plus}</button></div></div>
+    <form class="searchbar" data-form="savedq" style="height:46px"><span class="muted" style="display:flex">${I.search}</span><label for="sq" hidden>In meinen Rezepten suchen</label><input id="sq" type="search" placeholder="Rezept, Zutat oder Notiz suchen" value="${esc(ui.savedQ||'')}" autocomplete="off"></form>
+    <div class="chips scroll">${filters.map(f => `<button class="chip ${ui.filter===f?'on':''}" data-a="filter" data-v="${f}">${f}${f==='Alle' ? ' ' + saved.length : ''}</button>`).join('')}</div>
+    ${nxt ? `<div class="stack"><h2>Als Nächstes kochen</h2><div class="next">${thumb(nxt.r,'s')}<div class="grow"><div style="font-weight:700">${esc(nxt.r.title)}</div><div class="small muted">Geplant: ${esc(nxt.p.day)}</div></div><button class="btn sm" data-a="cook" data-id="${esc(nxt.r.id)}">Kochen</button></div></div>` : ''}
+    <div class="stack"><h2>Sammlungen</h2><div class="colls">${db.colls.map((c,k) => `<button class="coll t${collTile(c,k)} ${ui.coll===c?'on':''}" data-a="coll" data-v="${esc(c)}" aria-pressed="${ui.coll===c}"><span>${esc(c)}</span><span class="small" style="font-weight:600">${saved.filter(x=>x.s.coll===c).length}</span></button>`).join('')}<button class="coll newc" data-a="newcoll">${I.plus}<span>Neue Sammlung</span></button></div>
+      ${ui.collForm ? collForm('coll', ui.collForm === 'new' ? '' : ui.coll, ui.collForm === 'new' ? 'Anlegen' : 'Umbenennen') : ''}
+      ${ui.coll && !ui.collForm ? `<div class="row"><button class="link" data-a="renamecoll">Umbenennen</button><button class="link" data-a="delcoll" style="color:var(--warm-ink)">${ui.confirmColl ? 'Wirklich löschen? Nochmal tippen' : 'Sammlung löschen'}</button></div>` : ''}
+    </div>
+    <div class="stack"><h2>${ui.coll ? esc(ui.coll) : 'Gespeichert'}</h2>
+      ${list.length ? list.map(x => recipeCard(x.r, [x.s.cooked ? x.s.cooked + '× gekocht' : 'noch nie gekocht', x.s.rating ? '★ ' + x.s.rating : '', x.s.note ? 'Notiz' : '', x.r.custom ? 'eigenes' : ''].filter(Boolean).join(' · '))).join('')
+        : `<div class="empty">${saved.length ? 'Kein Rezept passt zu diesem Filter.' : 'Noch nichts gespeichert. Tippe bei einem Rezept auf „Speichern“ oder lege mit + ein eigenes an.'}</div>`}
+    </div>
+  </div>`;
+}
+const collForm = (form, val, label) => `<form class="searchbar" data-form="${form}" style="height:50px;padding-left:12px"><label for="cn" hidden>Name der Sammlung</label><input id="cn" value="${esc(val)}" placeholder="Name, z. B. Grillabend" maxlength="40" autocomplete="off"><button class="btn sm" type="submit">${label}</button><button type="button" class="iconbtn" data-a="cancelcoll" aria-label="Abbrechen">${I.x}</button></form>`;
+function addColl(name){
+  name = name.trim(); if (!name) return null;
+  if (db.colls.some(c => c.toLowerCase() === name.toLowerCase())) { toast('„' + name + '“ gibt es schon'); return null; }
+  const used = db.colls.map((c,k) => collTile(c,k));
+  const free = [1,2,3,4,5,6,7,8].filter(n => !used.includes(n));
+  const pool = free.length ? free : [1,2,3,4,5,6,7,8].filter(n => n !== used[used.length-1]);
+  db.collColors[name] = pool[Math.floor(Math.random() * pool.length)];
+  db.colls.push(name); persist(); return name;
+}
+function collTile(c, k){ return (db.collColors && db.collColors[c]) || (k % 3 + 1); }
+const dayIdx = d => { const i = DAYS.indexOf(d); if (i < 0) return -1; const today = (new Date().getDay()+6)%7; return (i - today + 7) % 7; };
+
+function vPlan(){
+  const items = db.plan.map(p => ({p, r:byId(p.id)})).filter(x => x.r);
+  const groups = ['Bald'].concat(DAYS.slice().sort((a,b) => dayIdx(a) - dayIdx(b)));
+  return `<div class="view">
+    <div class="stack" style="gap:4px"><div class="eyebrow">Diese Woche</div><h1>Wochenplan</h1></div>
+    ${items.length ? groups.filter(g => items.some(x => x.p.day === g)).map(g => `<div class="stack"><h2>${g}</h2>${items.filter(x => x.p.day===g).map(x => `<div class="next">${thumb(x.r,'s')}<div class="grow"><button class="card" style="padding:0" data-a="open" data-id="${esc(x.r.id)}"><span class="card-title">${esc(x.r.title)}</span></button><div class="small muted">${x.r.time} min</div></div><button class="btn sm" data-a="cook" data-id="${esc(x.r.id)}">Kochen</button></div>`).join('')}</div>`).join('')
+      : '<div class="empty">Noch nichts geplant. Öffne ein gespeichertes Rezept und wähle bei „Kochen am“ einen Tag.</div>'}
+    <div class="panel"><div class="row"><span class="ai">KI</span><span style="font-weight:700">Woche automatisch planen</span></div><div class="small muted" style="line-height:1.5">Der Koch schlägt sieben Gerichte vor, die deine Zutaten verwerten, und füllt die Einkaufsliste. Kommt mit der KI-Anbindung.</div></div>
+  </div>`;
+}
+
+function vShop(){
+  const open = db.shop.filter(x => !x.done).length;
+  return `<div class="view">
+    <div class="row between"><h1>Einkauf</h1>${db.shop.some(x=>x.done) ? '<button class="link" data-a="clearshop">Erledigte entfernen</button>' : ''}</div>
+    <form class="searchbar" data-form="shop" style="height:46px"><label for="si" hidden>Artikel hinzufügen</label><input id="si" placeholder="Artikel hinzufügen" autocomplete="off"><button class="iconbtn" aria-label="Hinzufügen" style="color:var(--accent)">${I.plus}</button></form>
+    ${db.shop.length ? `<div><div class="small muted" style="margin-bottom:4px">${open} offen</div>${db.shop.map((x,k) => `<label class="shop ${x.done?'done':''}" for="s${k}"><input type="checkbox" id="s${k}" data-ch="shopdone" data-k="${k}" ${x.done?'checked':''}><div class="grow"><span style="font-weight:600">${esc(x.n)}</span>${x.q ? ` <span class="muted small">${esc(x.q)}</span>` : ''}${x.from ? `<div class="small muted">für ${esc(x.from)}</div>` : ''}</div></label>`).join('')}</div>`
+      : '<div class="empty">Die Liste ist leer. Fehlende Zutaten kannst du direkt im Rezept hinzufügen.</div>'}
+  </div>`;
+}
+
+function vAdd(){
+  return `<form class="view" data-form="add">
+    <div class="row"><button type="button" class="iconbtn" data-a="back" aria-label="Zurück">${I.back}</button><h2 style="font-size:19px">Eigenes Rezept</h2></div>
+    <div class="panel" style="flex-direction:row;align-items:center"><span class="ai">KI</span><span class="small muted" style="line-height:1.45">Bald: Foto vom Kochbuch oder Link einfügen, der Koch füllt alles aus.</span></div>
+    <div class="field"><label for="a-title">Name</label><input id="a-title" required placeholder="z. B. Omas Apfelstrudel"></div>
+    <div class="grid2">
+      <div class="field"><label for="a-time">Zeit (min)</label><input id="a-time" type="number" inputmode="numeric" min="1" value="30"></div>
+      <div class="field"><label for="a-serv">Portionen</label><input id="a-serv" type="number" inputmode="numeric" min="1" value="4"></div>
+    </div>
+    <div class="field"><label for="a-ing">Zutaten (eine pro Zeile)</label><textarea id="a-ing" placeholder="500 g Äpfel&#10;2 EL Zucker&#10;1 Prise Zimt"></textarea></div>
+    <div class="field"><label for="a-steps">Zubereitung (ein Schritt pro Zeile, „10 min“ startet einen Timer)</label><textarea id="a-steps" placeholder="Äpfel schälen und schneiden&#10;Im Ofen 40 min backen"></textarea></div>
+    <div class="field"><label for="a-coll">Sammlung</label><select id="a-coll"><option value="">Keine</option>${db.colls.map(c => `<option>${esc(c)}</option>`).join('')}</select></div>
+    <button class="btn" type="submit">Rezept speichern</button>
+  </form>`;
+}
+
+function vSettings(){
+  const nSaved = Object.keys(db.saved).length, nOwn = db.custom.length;
+  const old = !db.lastBackup || Date.now() - db.lastBackup > 14 * 864e5;
+  const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const pi = ui.pendingImport;
+  return `<div class="view">
+    <div class="row"><button class="iconbtn" data-a="back" aria-label="Zurück">${I.back}</button><h2 style="font-size:19px">Daten &amp; Backup</h2></div>
+    <div class="panel">
+      <div class="row between"><span style="font-weight:700">Auf diesem Gerät</span><span class="muted small">${nSaved} gespeichert · ${nOwn} eigene</span></div>
+      <div class="small" style="line-height:1.5;${old ? 'color:var(--warm-ink);font-weight:600' : 'color:var(--muted)'}">${db.lastBackup ? 'Letztes Backup: ' + fmtDate(db.lastBackup) + '.' : 'Noch kein Backup erstellt.'}${old ? ' Sichere deine Rezepte regelmäßig, z. B. in pCloud.' : ''}</div>
+      <button class="btn" data-a="export">${I.download} Backup speichern</button>
+      <label class="btn ghost" for="importfile" style="cursor:pointer">${I.upload} Backup laden<input id="importfile" type="file" accept="application/json,.json" hidden></label>
+      <div class="small muted" style="line-height:1.5">${ios ? 'Beim Speichern öffnet sich das Teilen-Menü: „In Dateien sichern“ und dort pCloud Drive wählen.' : 'Beim Speichern im Teilen-Menü pCloud wählen, oder die Datei aus „Downloads“ in pCloud hochladen.'}</div>
+    </div>
+    ${pi ? `<div class="panel" style="background:var(--accent-soft)">
+      <div style="font-weight:700">Backup vom ${esc(pi.when)}</div>
+      <div class="small" style="line-height:1.5">${pi.nSaved} gespeicherte und ${pi.nOwn} eigene Rezepte, ${pi.nColls} Sammlungen.</div>
+      <div class="grid2"><button class="btn sm" style="width:100%" data-a="importmerge">Zusammenführen</button><button class="btn sm warm" style="width:100%" data-a="importreplace">${ui.confirmReplace ? 'Sicher? Nochmal tippen' : 'Ersetzen'}</button></div>
+      <div class="small muted" style="line-height:1.5">Zusammenführen behält alles auf diesem Gerät und ergänzt, was im Backup neu ist. Ersetzen überschreibt den Stand auf diesem Gerät.</div>
+      <button class="link" data-a="cancelimport" style="align-self:flex-start">Abbrechen</button>
+    </div>` : ''}
+    ${!standalone ? `<div class="panel"><div style="font-weight:700">Als App installieren</div>
+      ${ui.installEvt ? `<button class="btn" data-a="install">App installieren</button>` : `<div class="small muted" style="line-height:1.5">${ios ? 'In Safari unten auf Teilen tippen, dann „Zum Home-Bildschirm“.' : 'Im Browser-Menü „App installieren“ oder „Zum Startbildschirm hinzufügen“ wählen.'}</div>`}
+    </div>` : ''}
+    <div class="small muted" style="text-align:center">Kuchl · Version 1.0</div>
+  </div>`;
+}
+
+/* ---------- Kochmodus ---------- */
+let cook = null, tick = null, lock = null;
+function startCook(id){
+  const r = byId(id); if (!r) return;
+  cook = {id, step:0, left:r.steps[0].s, running:false, done:false, finished:false};
+  document.getElementById('cook').hidden = false;
+  document.body.style.overflow = 'hidden';
+  try { navigator.wakeLock && navigator.wakeLock.request('screen').then(l => lock = l).catch(() => {}); } catch(e) {}
+  renderCook();
+}
+function stopCook(){
+  clearInterval(tick); tick = null; cook = null;
+  document.getElementById('cook').hidden = true; document.body.style.overflow = '';
+  try { lock && lock.release(); } catch(e) {} lock = null;
+  render();
+}
+function setStep(n){
+  const r = byId(cook.id); clearInterval(tick); tick = null;
+  if (n >= r.steps.length) { cook.finished = true; renderCook(); return; }
+  cook.step = Math.max(0, n); cook.left = r.steps[cook.step].s; cook.running = false; cook.done = false; renderCook();
+}
+function toggleTimer(){
+  if (cook.done) { setStep(cook.step); return; }
+  cook.running = !cook.running;
+  if (cook.running) tick = setInterval(() => { cook.left--; if (cook.left <= 0) { cook.left = 0; cook.running = false; cook.done = true; clearInterval(tick); tick = null; try { navigator.vibrate && navigator.vibrate([300,150,300]); } catch(e){} } renderCook(); }, 1000);
+  else { clearInterval(tick); tick = null; }
+  renderCook();
+}
+function renderCook(){
+  const el = document.getElementById('cook'); const r = byId(cook.id);
+  if (cook.finished) {
+    el.innerHTML = `<div class="in"><div class="row between"><span></span><button class="iconbtn" data-a="cookclose" aria-label="Schließen">${I.x}</button></div>
+      <div class="stack" style="gap:8px;margin-top:40px"><div class="cookmuted">Fertig!</div><p class="steptext">${esc(r.title)} ist bereit. Guten Appetit!</p></div>
+      <div class="cookmuted">Wie war's?</div>
+      <div class="stars" role="group" aria-label="Bewertung">${[1,2,3,4,5].map(n => `<button data-a="cookrate" data-n="${n}" aria-label="${n} Sterne" style="color:var(--cook-line)">★</button>`).join('')}</div>
+      <div class="cookbtns"><button data-a="prevfromend">Zurück</button><button class="pri" data-a="cookrate" data-n="0">Fertig</button></div></div>`;
+    return;
+  }
+  const st = r.steps[cook.step]; const n = r.steps.length;
+  el.innerHTML = `<div class="in">
+    <div class="row between"><button class="iconbtn" data-a="cookclose" aria-label="Kochmodus schließen">${I.x}</button><span class="cookmuted" style="font-weight:600">Schritt ${cook.step+1} von ${n}</span><span style="width:44px"></span></div>
+    <div class="prog" style="grid-template-columns:repeat(${n},minmax(0,1fr))">${r.steps.map((_,k) => `<div class="${k<=cook.step?'on':''}"></div>`).join('')}</div>
+    <p class="steptext">${esc(st.t)}</p>
+    ${st.s ? `<div class="timer ${cook.done?'done':''}"><div><div class="cookmuted" style="font-size:13px">${cook.done ? 'Zeit ist um' : 'Timer'}</div><div class="t">${mmss(cook.left)}</div></div><button data-a="timer">${cook.done ? 'Neu' : cook.running ? 'Pause' : 'Start'}</button></div>` : ''}
+    <details class="ingmini"><summary style="cursor:pointer;color:var(--cook-fg);font-weight:700">Zutaten</summary>${r.ingredients.map(i => esc(i.n) + ' – ' + fmtQty(i, (ui.servings[r.id]||r.servings)/r.servings)).join('<br>')}</details>
+    <div class="ingmini"><span class="ai">KI</span> Bald: Sag „weiter“ oder frag z. B. „Kann ich Pecorino statt Parmesan nehmen?“</div>
+    <div class="cookbtns"><button data-a="prev" ${cook.step===0?'disabled style="opacity:.4"':''}>Zurück</button><button class="pri" data-a="next">${cook.step===n-1 ? 'Fertig' : 'Weiter'}</button></div>
+  </div>`;
+}
+
+/* ---------- Rendern ---------- */
+function render(){
+  const v = {home:vHome, scan:vScan, recipe:vRecipe, saved:vSaved, plan:vPlan, shop:vShop, add:vAdd, settings:vSettings}[view.name] || vHome;
+  document.getElementById('app').innerHTML = v();
+  const active = {home:'home', scan:'home', add:'saved', settings:'saved', saved:'saved', plan:'plan', shop:'shop'}[view.name] || (history.length ? (history.find(h => ['saved','plan','shop'].includes(h.name))||{name:'home'}).name : 'home');
+  const open = db.shop.filter(x => !x.done).length;
+  document.getElementById('tabs').innerHTML = [['home','Entdecken',I.compass],['saved','Rezepte',I.book],['plan','Planer',I.cal],['shop','Einkauf',I.cart]]
+    .map(([k,l,ic]) => `<button class="${active===k?'on':''}" data-a="tab" data-v="${k}" ${active===k?'aria-current="page"':''}>${ic}${l}${k==='shop'&&open ? `<span class="badge">${open}</span>` : ''}</button>`).join('');
+}
+
+/* ---------- Aktionen ---------- */
+function saveRecipe(id){
+  if (db.saved[id]) { delete db.saved[id]; db.plan = db.plan.filter(p => p.id !== id); toast('Aus deinen Rezepten entfernt'); }
+  else { db.saved[id] = {savedAt:Date.now(), cooked:0}; toast('In „Meine Rezepte“ gespeichert'); }
+  persist(); render();
+}
+function parseLine(line){
+  const m = line.match(/^\s*(\d+(?:[.,]\d+)?)\s*(g|kg|ml|l|EL|TL|Stk\.?|Stück|Prise|Prisen|Bund|Dose|Dosen|Pck\.?|Becher)?\.?\s+(.+)$/i);
+  if (m) return {q:parseFloat(m[1].replace(',','.')), u:m[2]||'', n:m[3].trim()};
+  return {q:null, u:'', n:line.trim()};
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  const a = b.dataset.a, id = b.dataset.id;
+  if (a !== 'delrecipe' && ui.confirmDel) ui.confirmDel = null;
+  if (a !== 'delcoll' && ui.confirmColl) ui.confirmColl = false;
+  switch (a) {
+    case 'go': go(b.dataset.v); break;
+    case 'tab': tab(b.dataset.v); break;
+    case 'back': back(); break;
+    case 'open': go('recipe', {id}); break;
+    case 'save': saveRecipe(id); break;
+    case 'clearq': ui.query = ''; render(); break;
+    case 'ai': toast('Kommt mit der KI-Anbindung'); break;
+    case 'serv': { const r = byId(id); ui.servings[id] = Math.max(1, (ui.servings[id]||r.servings) + Number(b.dataset.d)); render(); break; }
+    case 'rate': db.saved[id].rating = Number(b.dataset.n); db.saved[id].editedAt = Date.now(); persist(); render(); break;
+    case 'export': exportBackup(); break;
+    case 'importmerge': db = mergeData(db, ui.pendingImport.data); ui.pendingImport = null; ui.have = {}; persist(); render(); toast('Backup zusammengeführt'); break;
+    case 'importreplace':
+      if (!ui.confirmReplace) { ui.confirmReplace = true; render(); break; }
+      db = Object.assign(fresh(), ui.pendingImport.data); ui.pendingImport = null; ui.confirmReplace = false; ui.have = {};
+      persist(); render(); toast('Backup geladen'); break;
+    case 'cancelimport': ui.pendingImport = null; ui.confirmReplace = false; render(); break;
+    case 'install': { const ev = ui.installEvt; ui.installEvt = null; if (ev) { ev.prompt(); ev.userChoice.finally(() => render()); } break; }
+    case 'toshop': {
+      const r = byId(id); const f = (ui.servings[id]||r.servings)/r.servings; const have = ui.have[id]; let n = 0;
+      r.ingredients.forEach((i,k) => { if (!have[k] && !db.shop.some(x => !x.done && norm(x.n)===norm(i.n))) { db.shop.push({n:i.n, q:fmtQty(i,f).replace(/&amp;/g,'&'), from:r.title, done:false}); n++; } });
+      persist(); render(); toast(n ? n + ' Zutaten auf der Einkaufsliste' : 'Steht schon auf der Liste'); break; }
+    case 'cook': startCook(id); break;
+    case 'cookclose': stopCook(); break;
+    case 'next': setStep(cook.step + 1); break;
+    case 'prev': setStep(cook.step - 1); break;
+    case 'prevfromend': cook.finished = false; setStep(byId(cook.id).steps.length - 1); break;
+    case 'timer': toggleTimer(); break;
+    case 'cookrate': {
+      const n = Number(b.dataset.n); const rid = cook.id;
+      if (n) { b.parentElement.querySelectorAll('button').forEach((x,k) => x.style.color = k < n ? '#D99A1E' : 'var(--cook-line)'); b.parentElement.dataset.n = n; break; }
+      const chosen = Number((document.querySelector('#cook .stars')||{}).dataset?.n || 0);
+      if (!db.saved[rid]) db.saved[rid] = {savedAt:Date.now(), cooked:0};
+      db.saved[rid].cooked = (db.saved[rid].cooked||0) + 1; db.saved[rid].lastCooked = Date.now();
+      if (chosen) db.saved[rid].rating = chosen;
+      db.plan = db.plan.filter(p => p.id !== rid);
+      persist(); stopCook(); toast('Gespeichert: ' + db.saved[rid].cooked + '× gekocht'); break; }
+    case 'rmpantry': db.pantry.splice(Number(b.dataset.i),1); ui.results = null; persist(); render(); break;
+    case 'pref': { const v = b.dataset.v; db.prefs = db.prefs.includes(v) ? db.prefs.filter(x=>x!==v) : db.prefs.concat(v); persist(); render(); break; }
+    case 'suggest': {
+      ui.results = all().filter(r => matchCount(r) > 0)
+        .filter(r => !db.prefs.includes('≤ 30 min') || r.time <= 30)
+        .filter(r => !db.prefs.includes('Vegetarisch') || r.tags.some(t => /vegetarisch|vegan/i.test(t)))
+        .filter(r => !db.prefs.includes('Vegan') || r.tags.some(t => /vegan/i.test(t)))
+        .filter(r => !db.prefs.includes('1 Topf') || r.tags.some(t => /1 topf/i.test(t)))
+        .sort((x,y) => matchCount(y)/y.ingredients.length - matchCount(x)/x.ingredients.length).slice(0,5);
+      render(); setTimeout(() => { const h = [...document.querySelectorAll('h2')].pop(); h && h.scrollIntoView({behavior:'smooth', block:'start'}); }, 30); break; }
+    case 'filter': ui.filter = b.dataset.v; render(); break;
+    case 'coll': ui.coll = ui.coll === b.dataset.v ? null : b.dataset.v; ui.collForm = null; render(); break;
+    case 'newcoll': ui.collForm = 'new'; render(); focusCn(); break;
+    case 'renamecoll': ui.collForm = 'rename'; render(); focusCn(); break;
+    case 'cancelcoll': ui.collForm = null; ui.newCollFor = null; render(); break;
+    case 'delcoll': {
+      if (!ui.confirmColl) { ui.confirmColl = true; render(); break; }
+      const name = ui.coll; db.colls = db.colls.filter(c => c !== name); delete db.collColors[name];
+      Object.values(db.saved).forEach(s => { if (s.coll === name) s.coll = null; });
+      ui.coll = null; ui.confirmColl = false; persist(); render(); toast('Sammlung „' + name + '“ gelöscht'); break; }
+    case 'clearshop': db.shop = db.shop.filter(x => !x.done); persist(); render(); break;
+    case 'delrecipe':
+      if (ui.confirmDel !== id) { ui.confirmDel = id; render(); break; }
+      db.custom = db.custom.filter(r => r.id !== id); delete db.saved[id]; db.plan = db.plan.filter(p => p.id !== id); ui.confirmDel = null;
+      persist(); tab('saved'); toast('Rezept gelöscht'); break;
+  }
+});
+
+document.addEventListener('change', e => {
+  const t = e.target, c = t.dataset.ch, id = t.dataset.id;
+  if (t.id === 'importfile' && t.files && t.files[0]) {
+    const bad = () => toast('Diese Datei ist kein Kuchl-Backup');
+    t.files[0].text().then(txt => {
+      let p; try { p = JSON.parse(txt); } catch(_) { bad(); return; }
+      if (!p || !['kuchl','ki-kochbuch'].includes(p.app) || !p.data || typeof p.data !== 'object') { bad(); return; }
+      const d = p.data;
+      ui.pendingImport = {data:d, when:fmtDate(p.exportedAt || Date.now()), nSaved:Object.keys(d.saved || {}).length, nOwn:(d.custom || []).length, nColls:(d.colls || []).length};
+      ui.confirmReplace = false; render();
+    }).catch(bad);
+    t.value = ''; return;
+  }
+  if (t.id === 'photo' && t.files && t.files[0]) { const fr = new FileReader(); fr.onload = () => { ui.photo = fr.result; render(); toast('Foto aufgenommen. Zutaten bitte vorerst von Hand eintragen.'); }; fr.readAsDataURL(t.files[0]); return; }
+  if (!c) return;
+  if (c === 'have') { ui.have[id][Number(t.dataset.k)] = t.checked; render(); }
+  if (c === 'coll' && t.value === '__new') { ui.newCollFor = id; render(); focusCn(); return; }
+  if (c === 'coll') { db.saved[id].coll = t.value || null; db.saved[id].editedAt = Date.now(); persist(); toast(t.value ? 'Zu „' + t.value + '“ hinzugefügt' : 'Aus Sammlung entfernt'); }
+  if (c === 'day') { db.plan = db.plan.filter(p => p.id !== id); if (t.value) db.plan.push({id, day:t.value}); persist(); toast(t.value ? 'Eingeplant: ' + t.value : 'Nicht mehr geplant'); }
+  if (c === 'note') { db.saved[id].note = t.value; db.saved[id].editedAt = Date.now(); persist(); toast('Notiz gespeichert'); }
+  if (c === 'shopdone') { db.shop[Number(t.dataset.k)].done = t.checked; persist(); render(); }
+});
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'q') { ui.query = t.value; const pos = t.selectionStart; render(); const n = document.getElementById('q'); n.focus(); try { n.setSelectionRange(pos,pos); } catch(_){} }
+  if (t.id === 'sq') { ui.savedQ = t.value; const pos = t.selectionStart; render(); const n = document.getElementById('sq'); n.focus(); try { n.setSelectionRange(pos,pos); } catch(_){} }
+});
+
+document.addEventListener('submit', e => {
+  const f = e.target.dataset.form; if (!f) return; e.preventDefault();
+  if (f === 'coll') {
+    const v = document.getElementById('cn').value.trim(); if (!v) return;
+    if (ui.collForm === 'new') { const n = addColl(v); if (!n) return; ui.coll = n; toast('Sammlung „' + n + '“ angelegt'); }
+    else if (v !== ui.coll) {
+      if (db.colls.some(c => c.toLowerCase() === v.toLowerCase() && c !== ui.coll)) { toast('„' + v + '“ gibt es schon'); return; }
+      const old = ui.coll; db.colls = db.colls.map(c => c === old ? v : c);
+      if (db.collColors[old]) { db.collColors[v] = db.collColors[old]; delete db.collColors[old]; }
+      Object.values(db.saved).forEach(s => { if (s.coll === old) s.coll = v; });
+      ui.coll = v; persist(); toast('Umbenannt in „' + v + '“');
+    }
+    ui.collForm = null; render(); return;
+  }
+  if (f === 'collr') {
+    const n = addColl(document.getElementById('cn').value); if (!n) return;
+    const rid = ui.newCollFor; db.saved[rid].coll = n; ui.newCollFor = null; persist(); render(); toast('Zu „' + n + '“ hinzugefügt'); return;
+  }
+  if (f === 'search' || f === 'savedq') { document.activeElement && document.activeElement.blur(); return; }
+  if (f === 'pantry') { const v = document.getElementById('newing').value.trim(); if (v && !db.pantry.some(p => norm(p)===norm(v))) { db.pantry.push(v); ui.results = null; persist(); } render(); document.getElementById('newing').focus(); }
+  if (f === 'shop') { const v = document.getElementById('si').value.trim(); if (v) { db.shop.unshift({n:v, done:false}); persist(); } render(); document.getElementById('si').focus(); }
+  if (f === 'add') {
+    const title = document.getElementById('a-title').value.trim(); if (!title) return;
+    const ings = document.getElementById('a-ing').value.split('\n').filter(l => l.trim()).map(parseLine);
+    const steps = document.getElementById('a-steps').value.split('\n').filter(l => l.trim()).map(l => { const m = l.match(/(\d+)\s*(min|minuten)/i); return {t:l.trim(), s: m ? Number(m[1])*60 : 0}; });
+    if (!steps.length) steps.push({t:'Zubereitung noch ergänzen.', s:0});
+    const id = 'c' + Date.now();
+    db.custom.push({id, title, time:Number(document.getElementById('a-time').value)||30, servings:Number(document.getElementById('a-serv').value)||4, tags:['eigenes'], tile:(db.custom.length%3)+1, ingredients:ings, steps, custom:true});
+    db.saved[id] = {savedAt:Date.now(), cooked:0, coll: document.getElementById('a-coll').value || null};
+    persist(); history.length = 0; history.push({name:'saved'}); view = {name:'recipe', id}; render(); window.scrollTo(0,0); toast('Rezept gespeichert');
+  }
+});
+
+function focusCn(){ const n = document.getElementById('cn'); if (n) { n.focus(); n.select(); } }
+
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); ui.installEvt = e; if (view.name === 'settings') render(); });
+
+(async function boot(){ await load(); render(); })();
+})();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+</script>
+</body>
+</html>
